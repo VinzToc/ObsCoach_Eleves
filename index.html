@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StatObs Élèves – Accueil</title>
+<meta name="theme-color" content="#FFC800">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="StatObs">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="stylesheet" href="statobs.css">
+</head>
+<body>
+<div class="container">
+  <div class="brand">
+    <img src="icons/icon-192.png" alt="Logo StatObs">
+    <h1>StatObs<small>Observation entre élèves en EPS</small></h1>
+  </div>
+
+  <div class="banner" id="resume" hidden>
+    <span id="resumeTxt"></span>
+    <button type="button" class="btn btn-sm" id="resumeBtn">Ouvrir</button>
+  </div>
+
+  <form id="configForm" novalidate>
+    <div class="idcard">
+      <h3>👀 Observateur (moi)</h3>
+      <div class="grid2">
+        <div><label class="lbl" for="oNom">Nom</label><input type="text" id="oNom" maxlength="40" autocomplete="family-name"></div>
+        <div><label class="lbl" for="oPrenom">Prénom</label><input type="text" id="oPrenom" maxlength="40" autocomplete="given-name"></div>
+      </div>
+      <label class="lbl" for="oClasse">Classe</label><input type="text" id="oClasse" maxlength="20" autocomplete="off" placeholder="ex. 2GATL1">
+    </div>
+
+    <div class="idcard">
+      <h3>🏃 Élève observé</h3>
+      <div class="grid2">
+        <div><label class="lbl" for="eNom">Nom</label><input type="text" id="eNom" maxlength="40" autocomplete="off"></div>
+        <div><label class="lbl" for="ePrenom">Prénom</label><input type="text" id="ePrenom" maxlength="40" autocomplete="off"></div>
+      </div>
+      <label class="lbl" for="eClasse">Classe</label><input type="text" id="eClasse" maxlength="20" autocomplete="off">
+      <p class="muted" style="margin-top:6px">Le fichier de résultats portera le nom de cet élève. Écrivez les noms comme sur Pronote.</p>
+    </div>
+
+    <h2 class="section-title">Séance</h2>
+    <label class="lbl" for="activite">Activité pratiquée :</label>
+    <input type="text" id="activite" maxlength="60" autocomplete="off" list="actList" placeholder="ex. Basket-ball, Badminton, Demi-fond…">
+    <datalist id="actList"></datalist>
+    <p class="muted" id="actInfo" style="margin-top:6px"></p>
+    <div class="suggest" id="suggestBox" hidden><button type="button" class="btn btn-ghost btn-sm" id="suggestBtn">✨ Proposer des observables types pour cette activité</button></div>
+
+    <label class="lbl" for="nbObservables">Nombre d'observables :</label>
+    <select id="nbObservables">
+      <option value="">-- Sélectionnez --</option>
+      <option>1</option><option>2</option><option>3</option><option>4</option>
+      <option>5</option><option>6</option><option>7</option><option>8</option>
+    </select>
+
+    <div class="legend" id="legend" hidden>
+      <span><i class="p"></i>Point positif</span><span><i class="n"></i>Point négatif</span>
+    </div>
+    <div id="obsList" style="margin-top:12px"></div>
+
+    <p class="msg err" id="formErr" hidden></p>
+    <div class="btn-row"><button type="submit" class="btn btn-primary">Début de l'observation</button></div>
+  </form>
+
+  <p class="muted" style="margin-top:14px;text-align:center">Aucune donnée n'est envoyée sur Internet : le fichier .xlsx est enregistré sur cet appareil, à remettre à l'enseignant.</p>
+
+  <div class="btn-row"><button type="button" class="btn btn-ghost" id="installBtn" hidden>📲 Installer l'application</button></div>
+  <div class="hint" id="iosHint" hidden>
+    <b>Installer sur iPhone / iPad :</b> dans Safari, touchez le bouton Partager puis « Sur l'écran d'accueil ».
+  </div>
+</div>
+
+<script src="eps-xlsx.js"></script>
+<script src="statobs-bilan.js"></script>
+<script src="statobs.js"></script>
+<script>
+(function () {
+  'use strict';
+  const S = StatObs, K = S.K, B = StatObsBilan;
+  const $ = id => document.getElementById(id);
+
+  /* ── Observables + polarité ── */
+  const items = [], pols = [];
+  function renderObs() {
+    $('obsList').querySelectorAll('.obs-row').forEach((r, i) => {
+      items[i] = r.querySelector('input[type=text]').value;
+      pols[i] = r.querySelector('input[type=checkbox]').checked;
+    });
+    const n = +$('nbObservables').value || 0;
+    $('obsList').innerHTML = Array.from({ length: n }, (_, i) =>
+      `<div class="obs-row"><div class="grow"><span class="item-label">Observable ${i + 1} :</span>` +
+      `<input type="text" id="item${i + 1}" maxlength="40" autocomplete="off" value="${S.esc(items[i] || '')}"></div>` +
+      `<div class="pol"><span class="cap">Polarité</span><input type="checkbox" id="pol${i + 1}"${pols[i] ? ' checked' : ''}>` +
+      `<label class="switch" for="pol${i + 1}"><span class="knob"></span></label></div></div>`).join('');
+    $('legend').hidden = !n;
+  }
+  $('nbObservables').addEventListener('change', renderObs);
+  const setObs = (labels, neg) => {
+    $('obsList').innerHTML = ''; items.length = 0; pols.length = 0;
+    labels.forEach((l, i) => { items[i] = l; pols[i] = !!neg[i]; });
+    $('nbObservables').value = String(labels.length); renderObs();
+  };
+
+  /* ── Activité : référentiel du bilan coach ── */
+  $('actList').innerHTML = B.ACTIVITIES.map(a => `<option value="${S.esc(a.nom)}">`).join('');
+  function onAct() {
+    const a = B.detect($('activite').value);
+    $('actInfo').textContent = a ? `Référentiel reconnu : ${a.nom}. Le bilan sera adapté à l'activité.`
+      : ($('activite').value.trim() ? 'Activité non reconnue : le bilan donnera des conseils généraux.' : '');
+    $('suggestBox').hidden = !a;
+  }
+  $('activite').addEventListener('input', onAct);
+  $('suggestBtn').addEventListener('click', () => {
+    const a = B.detect($('activite').value); if (!a) return;
+    const filled = [...$('obsList').querySelectorAll('input[type=text]')].some(i => i.value.trim());
+    if (filled && !confirm('Remplacer les observables déjà saisis ?')) return;
+    setObs(a.suggest.map(o => o[0]), a.suggest.map(o => o[1] === '-'));
+  });
+
+  /* ── Pré-remplissage : moi (mémorisé) ou rôles inversés après une observation ── */
+  const me = S.read(S.ME), pre = S.read(S.PREFILL);
+  if (pre) {
+    $('oNom').value = pre.o.n; $('oPrenom').value = pre.o.p; $('oClasse').value = pre.o.classe;
+    $('eNom').value = pre.e.n; $('ePrenom').value = pre.e.p; $('eClasse').value = pre.e.classe;
+    $('activite').value = pre.activite || '';
+    if (pre.items) setObs(pre.items, pre.polarity.map(p => p === 'negative'));
+    localStorage.removeItem(S.PREFILL);
+  } else if (me) { $('oNom').value = me.n; $('oPrenom').value = me.p; $('oClasse').value = me.classe; }
+  onAct();
+
+  /* ── Démarrage ── */
+  $('configForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const err = (m, id) => { const b = $('formErr'); b.textContent = m; b.hidden = false; (id ? $(id) : b).focus(); b.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
+    $('formErr').hidden = true;
+    for (const [id, m] of [['oNom', 'Indiquez votre nom (observateur).'], ['oPrenom', 'Indiquez votre prénom (observateur).'], ['oClasse', 'Indiquez votre classe (observateur).'],
+                           ['eNom', 'Indiquez le nom de l\'élève observé.'], ['ePrenom', 'Indiquez le prénom de l\'élève observé.'], ['eClasse', 'Indiquez la classe de l\'élève observé.']])
+      if (!$(id).value.trim()) return err(m, id);
+    const o = S.person('observateur', $('oNom').value, $('oPrenom').value, $('oClasse').value);
+    const p = S.person('eleve', $('eNom').value, $('ePrenom').value, $('eClasse').value);
+    if (o.nom === p.nom && o.classe === p.classe) return err('L\'observateur et l\'élève observé doivent être deux personnes différentes.', 'eNom');
+    const act = $('activite').value.trim();
+    if (!act) return err('Indiquez l\'activité pratiquée.', 'activite');
+    const n = +$('nbObservables').value;
+    if (!n) return err('Choisissez le nombre d\'observables.', 'nbObservables');
+    const its = [], pl = [];
+    for (let i = 1; i <= n; i++) {
+      const v = $('item' + i).value.trim();
+      if (!v) return err(`Renseignez l'observable ${i}.`, 'item' + i);
+      its.push(v); pl.push($('pol' + i).checked ? 'negative' : 'positive');
+    }
+    S.write(S.ME, o);
+    const cfg = { id: Date.now(), activite: act, nbObservables: n, items: its, polarity: pl, observateurs: [o], joueurs: [p] };
+    S.clearSession();
+    S.write(K.config, cfg);
+    S.write(K.counts, { [p.id]: {} }); S.write(K.cur, 0);
+    location.href = 'panneau_saisie.html';
+  });
+
+  /* ── Séance en cours / terminée ── */
+  (function banner() {
+    const cfg = S.read(K.config), fin = S.read(K.final);
+    if (!cfg) return;
+    $('resume').hidden = false;
+    $('resumeTxt').textContent = fin ? `Résultats disponibles : ${cfg.joueurs[0].nom} – « ${cfg.activite} ».` : `Observation en cours : ${cfg.joueurs[0].nom} – « ${cfg.activite} ».`;
+    $('resumeBtn').textContent = fin ? 'Voir le bilan' : 'Reprendre';
+    $('resumeBtn').onclick = () => { location.href = fin ? 'statistiques.html' : 'panneau_saisie.html'; };
+  })();
+})();
+</script>
+</body>
+</html>
