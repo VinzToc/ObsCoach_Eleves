@@ -34,11 +34,12 @@
   const ascii = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9-]+/g, '_').replace(/^_+|_+$/g, '');
   S.fileName = f => { const e = f.joueurs[0]; return `StatObs_${ascii(e.n)}_${ascii(e.p)}_${ascii(e.classe)}_${StatObsBilan.dateOf(f)}.xlsx`; };
 
-  /* Fichier de sauvegarde : Élèves (l'élève observé) + statobs (une ligne) + _meta */
+  /* Fichier de sauvegarde (format Mes Apps EPS « fichier d'un élève », sans feuille Élèves) :
+     statobs (une ligne au nom de l'élève observé) + _meta. Le professeur l'importe dans StatObs ou
+     Mes Apps EPS : la ligne est rattachée à l'élève par Nom + Prénom + Classe. */
   S.exportXlsx = async f => {
     const B = StatObsBilan, e = f.joueurs[0], o = f.observateurs[0];
     const blob = EPSXLSX.build([
-      { name: 'Élèves', rows: [['Nom', 'Prénom', 'Né(e) le', 'Classe', 'Régime'], [e.n, e.p, '', e.classe, '']] },
       { name: APP, rows: [['Nom', 'Prénom', 'Né(e) le', 'Classe', ...B.header(f.items.length)],
         [e.n, e.p, '', e.classe, ...B.sheetCells(f, e.id, 'Pratiquant', { observateurs: S.label(o), observes: e.nom })]] },
       { name: '_meta', hidden: true, rows: [['Feuille', 'Application', 'Mode'], [APP, APP, 'lignes']] }

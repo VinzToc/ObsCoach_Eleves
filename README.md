@@ -9,7 +9,8 @@ Version élève de StatObs : 100 % locale, 100 % hors ligne, thème jaune. Aucun
 3. Touche courte : +1 · appui long : −1.
 4. En fin de séance : radar, synthèse et **bilan du coach** (profil, points forts, priorité de travail avec critères et exercice, vigilance, objectifs chiffrés).
 5. **Enregistrer le fichier (.xlsx)** produit `StatObs_NOM_Prenom_CLASSE_AAAA-MM-JJ.xlsx`, au nom de l'élève observé, au format type Mes Apps EPS :
-   feuille **Élèves** (l'élève observé), feuille **statobs** (une ligne, mêmes colonnes que la version enseignant), feuille cachée **_meta**.
+   feuille **statobs** (une ligne, mêmes colonnes que la version prof) et feuille cachée **_meta**, sans feuille « Élèves » (format « fichier d'un élève » du guide Mes Apps EPS).
+   Le professeur l'importe avec le bouton **Importer une sauvegarde StatObs** de StatObs prof.
    Sur iPhone / iPad, la feuille de partage s'ouvre (Fichiers, AirDrop, ENT…).
 6. **Inverser les rôles** relance une observation avec les rôles échangés (mêmes observables).
 
