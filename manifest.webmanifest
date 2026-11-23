@@ -1,7 +1,7 @@
 {
   "id": "/StatObs-Eleves/",
-  "name": "StatObs Élèves – Observation entre élèves",
-  "short_name": "StatObs",
+  "name": "ObsCoach – Observation entre élèves",
+  "short_name": "ObsCoach",
   "description": "Observation d'un camarade en EPS, bilan du coach et fichier de résultats .xlsx, 100 % hors ligne.",
   "lang": "fr",
   "start_url": "./",
