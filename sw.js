@@ -1,6 +1,6 @@
 /* Service worker StatObs Élèves – tout est mis en cache : l'app fonctionne sans réseau.
    Pour publier une mise à jour : changer VERSION ci-dessous. */
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE = 'statobs-eleves-' + VERSION;
 
 const CORE = ['footer.js','nouveautes.js','nouveautes.json',
